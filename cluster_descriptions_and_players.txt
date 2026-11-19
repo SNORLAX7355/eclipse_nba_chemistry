@@ -1,0 +1,66 @@
+Cluster 0 - Interior and two way bigs
+Stats:
+High pick and roll man
+High cutting
+High offensive rebounding
+High post up scoring
+High defensive isolation and post up
+Players: 
+Anthony Davis
+Joel Embiid
+
+Cluster 1 - Primary Ball Handlers and Playmakers
+Stats:
+High assist percentage 
+High pick and roll handler
+High isolation
+High usage percentage
+Slightly above average defensive hand off
+Players:
+Luka Doncic
+Lebron James
+Tyrese Maxey
+
+Cluster 2 - basically cluster 0 but less defensive (very high overlap)
+Stats:
+High pick and roll man
+High cutting
+High offensive rebounding
+High post up scoring
+High defensive pick and roll
+Players:
+Nikola Jokic
+Bam Adebayo
+KAT
+
+Cluster 3 - Off ball role players and defensive wings
+Stats:
+High offensive spot up
+High offensive transition
+Slightly below average defensive off screen
+Slightly above average defensive handoff
+Low usage rate
+Slightly below average assists percentage
+Players:
+Alex Caruso
+Josh Hart
+OG Anunoby
+
+Cluster 4 - Spot up specialist
+Stats:
+Very high offensive and defensive spot up
+Low usage rate
+Slightly below average assist rate
+Low defensive off screen
+Players:
+Patty Mills
+T.J. Warren
+
+Cluster 5 - Off ball shooters
+Stats:
+Very high offensive off screen
+Very high offensive hand off
+Below average assist rate
+Players:
+Klay Thompson
+MPJ
