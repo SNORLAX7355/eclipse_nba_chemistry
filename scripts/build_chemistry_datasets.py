@@ -26,7 +26,7 @@ import lineup_chemistry as lc  # noqa: E402
 def main() -> int:
     data = lc.data_dir(Path(__file__).resolve().parents[1])
 
-    lineups = pd.read_csv(data / "lineups_five_seasons.csv")
+    lineups = pd.read_csv(lc.lineups_path(Path(__file__).resolve().parents[1]))
     players = pd.read_csv(data / "player_stats_five_seasons.csv")
     clusters = pd.read_csv(data / "player_clusters_five_seasons.csv")
     print(f"lineups={lineups.shape} players={players.shape} clusters={clusters.shape}")

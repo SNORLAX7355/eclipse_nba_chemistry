@@ -57,7 +57,7 @@ def shift_season_forward(df: pd.DataFrame, seasons: list[str]) -> pd.DataFrame:
 
 def build_design_matrix(data: Path, *, same_season: bool = False):
     """Lineup rows with composition features and archetype counts."""
-    lineups = lc.add_player_ids(pd.read_csv(data / "lineups_five_seasons.csv"))
+    lineups = lc.add_player_ids(pd.read_csv(lc.lineups_path(Path(__file__).resolve().parents[1])))
     players = pd.read_csv(data / "player_stats_five_seasons.csv")
     clusters = pd.read_csv(data / "player_clusters_five_seasons.csv")
 
@@ -167,7 +167,7 @@ def main() -> int:
     # Signal ceiling from the full five-season sample (the per-season estimate
     # is unstable on a few hundred rows).
     rel = lc.estimate_reliability(
-        pd.read_csv(data / "lineups_five_seasons.csv"),
+        pd.read_csv(lc.lineups_path(Path(__file__).resolve().parents[1])),
         value_col="NET_RATING", weight_col="POSS",
     )
     print("=== signal ceiling (all 10,000 lineups) ===")
