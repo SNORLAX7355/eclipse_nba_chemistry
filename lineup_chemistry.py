@@ -43,6 +43,7 @@ __all__ = [
     "add_archetype_composition",
     "estimate_reliability",
     "possession_weighted_r2",
+    "lineups_path",
 ]
 
 SEASONS = ["2021-22", "2022-23", "2023-24", "2024-25", "2025-26"]
@@ -551,4 +552,23 @@ def data_dir(start: Path | str = ".") -> Path:
             return candidate.resolve()
     raise FileNotFoundError(
         "basketball_data not found - run from the repository root"
+    )
+
+
+def lineups_path(start: Path | str = ".") -> Path:
+    """Locate ``lineups_five_seasons.csv``.
+
+    It moved from ``basketball_data/`` to ``using_dataset/`` in commit 6333f18,
+    so both locations are checked rather than assuming either one.
+    """
+    start = Path(start)
+    roots = [start, start / ".."]
+    for root in roots:
+        for sub in ("using_dataset", "basketball_data"):
+            candidate = root / sub / "lineups_five_seasons.csv"
+            if candidate.is_file():
+                return candidate.resolve()
+    raise FileNotFoundError(
+        "lineups_five_seasons.csv not found in using_dataset/ or "
+        "basketball_data/ - run from the repository root"
     )

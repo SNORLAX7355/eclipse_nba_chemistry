@@ -586,16 +586,16 @@ class TestPossessionWeightedR2:
 @pytest.mark.skipif(not DATA.is_dir(), reason="basketball_data/ not present")
 class TestCommittedData:
     def test_five_man_lineups_all_parse_to_five_distinct_players(self):
-        lineups = lc.add_player_ids(pd.read_csv(DATA / "lineups_five_seasons.csv"))
+        lineups = lc.add_player_ids(pd.read_csv(lc.lineups_path(REPO_ROOT)))
         assert (lineups.N_PLAYERS == 5).all()
         assert (lineups.N_UNIQUE_PLAYERS == 5).all()
 
     def test_lineup_keys_are_unique(self):
-        lineups = pd.read_csv(DATA / "lineups_five_seasons.csv")
+        lineups = pd.read_csv(lc.lineups_path(REPO_ROOT))
         assert not lineups.duplicated(["GROUP_ID", "SEASON"]).any()
 
     def test_every_lineup_member_exists_in_player_stats(self):
-        lineups = lc.add_player_ids(pd.read_csv(DATA / "lineups_five_seasons.csv"))
+        lineups = lc.add_player_ids(pd.read_csv(lc.lineups_path(REPO_ROOT)))
         players = pd.read_csv(DATA / "player_stats_five_seasons.csv")
         known = set(zip(players.PLAYER_ID, players.SEASON))
         missing = sum(
@@ -606,7 +606,7 @@ class TestCommittedData:
         assert missing == 0
 
     def test_net_rating_equals_off_minus_def(self):
-        lineups = pd.read_csv(DATA / "lineups_five_seasons.csv")
+        lineups = pd.read_csv(lc.lineups_path(REPO_ROOT))
         diff = (lineups.NET_RATING - (lineups.OFF_RATING - lineups.DEF_RATING)).abs()
         assert diff.max() < 0.2  # endpoint rounds each rating to 0.1
 
