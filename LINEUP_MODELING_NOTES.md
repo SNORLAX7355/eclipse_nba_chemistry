@@ -129,6 +129,45 @@ added after that is flat or worse.
 With ~1,476 rows and a noisy target, extra features seem to cost more in variance than
 they add in signal.
 
+### Box scores + clusters on their own
+
+The table above adds features in one fixed order, so `plus_clusters` already contains the
+play types and all 30 `STD_` columns. That can't separate "clusters don't help" from
+"clusters got buried under the noise the earlier steps added". So I rebuilt each
+combination from scratch. Differences here are small, so this uses 30 grouped random
+splits instead of 5 folds, which gives a standard error to compare against.
+
+GroupKFold-style R², Ridge, `POSS >= 100`:
+
+| Features | n | ORTG mean R² | vs `avg_box` | DRTG mean R² | vs `avg_box` |
+|---|---|---|---|---|---|
+| clusters only | 6 | −0.006 | −0.165 | −0.015 | −0.079 |
+| **`avg_box`** | **12** | **0.159** | — | **0.064** | — |
+| `avg_box` + clusters | 18 | 0.159 | +0.000 | 0.060 | −0.004 |
+| `avg_box` + `std_box` | 24 | 0.152 | −0.007 | 0.065 | +0.001 |
+| `avg_box` + `std_box` + clusters | 30 | 0.149 | −0.010 | 0.059 | −0.005 |
+| `avg_box` + avg play types | 30 | 0.145 | −0.014 | 0.039 | −0.025 |
+| everything | 66 | 0.098 | −0.061 | 0.026 | −0.038 |
+
+Paired over identical splits, `avg_box + clusters` vs `avg_box`:
+
+| Target | Model | `avg_box` | + clusters | Difference | p |
+|---|---|---|---|---|---|
+| ORTG | Ridge | 0.1589 | 0.1590 | +0.0001 | 0.98 |
+| ORTG | RandomForest | 0.1361 | 0.1368 | +0.0007 | 0.47 |
+| DRTG | Ridge | 0.0636 | 0.0600 | −0.0036 | 0.17 |
+| DRTG | RandomForest | 0.0329 | 0.0333 | +0.0004 | 0.73 |
+
+So the clusters really do add nothing, and it isn't a noise problem. The giveaway is the
+first row: **clusters on their own score a negative R²**, so there was no signal there
+for the other features to drown out. That makes sense given the clusters were built from
+play-type and box-score inputs — a 6-level label is a coarser version of what the 12
+continuous columns already say.
+
+The standard errors are about 0.005–0.008, which is a useful yardstick: differences that
+size or smaller are noise. `avg_box + clusters` vs `avg_box` is a genuine tie, while
+`avg_box` vs everything (−0.061) is a real gap.
+
 ### Normalising
 
 It matters for Ridge and kNN and makes no difference to the tree models, which split on

@@ -177,6 +177,76 @@ def experiment_features(root: Path, thr: int) -> None:
     print("not something you could use to evaluate a lineup that has not played yet.")
 
 
+def experiment_feature_combos(root: Path, thr: int) -> None:
+    banner("3a. NON-NESTED FEATURE COMBINATIONS")
+    print("The section-3 sets are cumulative, so `plus_clusters` already carries the")
+    print("play types and all 30 STD_ columns. That cannot tell 'clusters do not help'")
+    print("apart from 'clusters were buried under what the earlier steps added'. Here")
+    print("each combination is built from scratch, over 30 grouped random splits so")
+    print("there is a standard error to judge the differences against.\n")
+
+    from scipy import stats as st
+    from sklearn.model_selection import GroupShuffleSplit
+
+    data = load(root, thr)
+    cols = data.columns
+    avg_box = [c for c in cols if c.startswith("AVG_") and "SYNERGY" not in c]
+    avg_play = [c for c in cols if c.startswith("AVG_") and "SYNERGY" in c]
+    std_box = [c for c in cols if c.startswith("STD_") and "SYNERGY" not in c]
+    std_play = [c for c in cols if c.startswith("STD_") and "SYNERGY" in c]
+    clusters = [c for c in cols if c.startswith("CLUSTER_")]
+
+    combos = {
+        "clusters only": clusters,
+        "avg_box": avg_box,
+        "avg_box + clusters": avg_box + clusters,
+        "avg_box + std_box": avg_box + std_box,
+        "avg_box + std_box + clusters": avg_box + std_box + clusters,
+        "avg_box + avg_play": avg_box + avg_play,
+        "avg_box + avg_play + clusters": avg_box + avg_play + clusters,
+        "everything": avg_box + avg_play + std_box + std_play + clusters,
+    }
+    gss = GroupShuffleSplit(n_splits=30, test_size=0.25, random_state=RANDOM_STATE)
+    combo_models = {
+        "Ridge": make_pipeline(StandardScaler(), Ridge(alpha=1.0)),
+        "RandomForest": RandomForestRegressor(
+            n_estimators=300, min_samples_leaf=5, max_features="sqrt",
+            random_state=RANDOM_STATE, n_jobs=-1),
+    }
+
+    for target in lm.TARGETS:
+        for mname, model in combo_models.items():
+            rows = []
+            for cname, cs in combos.items():
+                sc = cross_val_score(model, data[cs], data[target],
+                                     groups=data.GROUP, cv=gss, scoring="r2")
+                rows.append({"features": cname, "n": len(cs), "mean R2": sc.mean(),
+                             "sd across splits": sc.std(),
+                             "std error": sc.std() / np.sqrt(len(sc))})
+            out = pd.DataFrame(rows)
+            out["vs avg_box"] = (out["mean R2"]
+                                 - out[out.features == "avg_box"]["mean R2"].iloc[0])
+            print(f"--- {target} / {mname} ---")
+            print(out.round(4).to_string(index=False), "\n")
+
+    print("Paired over identical splits: avg_box + clusters vs avg_box")
+    for target in lm.TARGETS:
+        for mname, model in combo_models.items():
+            a = cross_val_score(model, data[avg_box], data[target],
+                                groups=data.GROUP, cv=gss, scoring="r2")
+            b = cross_val_score(model, data[avg_box + clusters], data[target],
+                                groups=data.GROUP, cv=gss, scoring="r2")
+            _, p = st.ttest_rel(b, a)
+            verdict = ("clusters help" if p < 0.05 and (b - a).mean() > 0
+                       else "clusters hurt" if p < 0.05 else "no real difference")
+            print(f"  {target:11s} {mname:13s} avg_box={a.mean():.4f}  "
+                  f"+clusters={b.mean():.4f}  diff={(b - a).mean():+.4f}  "
+                  f"p={p:.3f}  -> {verdict}")
+    print("\n`clusters only` scoring a negative R2 is the key line: the archetype counts")
+    print("carry almost no information about a lineup's rating on their own, so there")
+    print("was nothing for the other features to drown out.")
+
+
 def experiment_scaling(root: Path, thr: int) -> None:
     banner("4. DOES NORMALISING HELP?")
     data = load(root, thr)
@@ -416,6 +486,7 @@ def main() -> int:
     experiment_reliability(root)
     experiment_split_strategy(root, args.threshold)
     experiment_features(root, args.threshold)
+    experiment_feature_combos(root, args.threshold)
     experiment_scaling(root, args.threshold)
     experiment_threshold(root)
     best = experiment_tuning(root, args.threshold, args.quick)
